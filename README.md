@@ -10,7 +10,7 @@
 
 ```bash
 # Clone into your project
-git clone https://github.com/TheClarkJB/claude-dev-env.git claude-setup
+git clone https://github.com/TheClark/claude-dev-env.git claude-setup
 cd claude-setup
 
 # Configure
@@ -57,7 +57,7 @@ cp .env.example .env
 cd my-awesome-project
 
 # Clone claude-dev-env
-git clone https://github.com/TheClarkJB/claude-dev-env.git claude-setup
+git clone https://github.com/TheClark/claude-dev-env.git claude-setup
 
 # Configure for your project
 cd claude-setup
@@ -74,7 +74,7 @@ cp .env.example .env
 # Clone to a tools directory
 mkdir -p ~/tools
 cd ~/tools
-git clone https://github.com/TheClarkJB/claude-dev-env.git
+git clone https://github.com/TheClark/claude-dev-env.git
 
 # For each project, copy and configure
 cp -r ~/tools/claude-dev-env ~/projects/my-project/claude-setup
@@ -305,9 +305,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [Report Issues](https://github.com/TheClarkJB/claude-dev-env/issues)
-- [Discussions](https://github.com/TheClarkJB/claude-dev-env/discussions)
-- [Wiki](https://github.com/TheClarkJB/claude-dev-env/wiki)
+- [Report Issues](https://github.com/TheClark/claude-dev-env/issues)
+- [Discussions](https://github.com/TheClark/claude-dev-env/discussions)
+- [Wiki](https://github.com/TheClark/claude-dev-env/wiki)
 
 ---
 

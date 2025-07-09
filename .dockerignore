@@ -1,0 +1,43 @@
+# Ignore files when building Docker image
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Credentials
+credentials-summary.txt
+*.pem
+*.key
+*.crt
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Documentation (not needed in image)
+README.md
+docs/
+
+# Scripts (will be used from host)
+scripts/start-claude.sh
+scripts/start-claude.ps1
+scripts/setup-credentials.sh

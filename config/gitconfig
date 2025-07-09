@@ -1,0 +1,162 @@
+# Enhanced Git Configuration for Claude Development
+
+[core]
+    editor = vim
+    autocrlf = input
+    whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+    excludesfile = ~/.gitignore_global
+    pager = less -FRX
+
+[user]
+    # These will be overridden by environment variables if set
+    name = Claude Developer
+    email = claude@example.com
+
+[init]
+    defaultBranch = main
+
+[color]
+    ui = auto
+    branch = auto
+    diff = auto
+    interactive = auto
+    status = auto
+
+[color "branch"]
+    current = green bold
+    local = green
+    remote = yellow
+
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+
+[color "status"]
+    added = green bold
+    changed = yellow bold
+    untracked = red bold
+
+[alias]
+    # Shortcuts
+    st = status -sb
+    ci = commit
+    co = checkout
+    br = branch
+    df = diff
+    lg = log --oneline --graph --decorate
+    
+    # Useful aliases
+    last = log -1 HEAD
+    unstage = reset HEAD --
+    visual = !gitk
+    hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short
+    type = cat-file -t
+    dump = cat-file -p
+    
+    # Advanced aliases
+    # List aliases
+    la = "!git config -l | grep alias | cut -c 7-"
+    
+    # Show verbose log
+    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
+    
+    # Show modified files in last commit
+    dl = "!git ll -1"
+    
+    # Show a diff of last commit
+    dlc = diff --cached HEAD^
+    
+    # Find files
+    f = "!git ls-files | grep -i"
+    
+    # Search for a string in all files
+    gr = grep -Ii
+    
+    # List all branches
+    ba = branch -a
+    
+    # List remote branches
+    br = branch -r
+    
+    # Interactive rebase
+    reb = "!r() { git rebase -i HEAD~$1; }; r"
+    
+    # Show recent branches
+    recent = for-each-ref --count=10 --sort=-committerdate refs/heads/ --format="%(refname:short)"
+    
+    # Amend the last commit
+    amend = commit --amend --reuse-message=HEAD
+    
+    # Credit an author on the latest commit
+    credit = "!f() { git commit --amend --author \"$1 <$2>\" -C HEAD; }; f"
+    
+    # Show verbose remote info
+    remotes = remote -v
+    
+    # Show contributors
+    contributors = shortlog --summary --numbered
+    
+    # Show today's work
+    today = log --since=midnight --author='Claude Developer' --oneline
+    
+    # Undo last commit but keep changes
+    undo = reset HEAD~1 --mixed
+    
+    # Show branches sorted by last modified
+    b = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
+    
+    # Pretty log with graph
+    graph = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    
+    # Stash helpers
+    sl = stash list
+    sa = stash apply
+    ss = stash save
+    
+    # GitHub helpers (requires gh CLI)
+    pr-create = !gh pr create
+    pr-list = !gh pr list
+    pr-checkout = !gh pr checkout
+    issue-create = !gh issue create
+    issue-list = !gh issue list
+
+[merge]
+    tool = vimdiff
+    conflictstyle = diff3
+
+[push]
+    default = simple
+    followTags = true
+
+[pull]
+    rebase = false
+
+[fetch]
+    prune = true
+
+[diff]
+    tool = vimdiff
+    algorithm = patience
+
+[help]
+    autocorrect = 1
+
+[credential]
+    helper = cache --timeout=3600
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+[github]
+    user = claude-developer
+
+[includeIf "gitdir:~/work/"]
+    path = ~/.gitconfig-work
+
+[includeIf "gitdir:~/personal/"]
+    path = ~/.gitconfig-personal

@@ -1,0 +1,56 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/docker-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/docker-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build Docker image
+      run: |
+        docker build -t claude-dev-env:test .
+    
+    - name: Test Docker image
+      run: |
+        # Test that the image runs
+        docker run --rm claude-dev-env:test echo "Container started successfully"
+        
+        # Test key tools are installed
+        docker run --rm claude-dev-env:test python --version
+        docker run --rm claude-dev-env:test node --version
+        docker run --rm claude-dev-env:test go version
+        docker run --rm claude-dev-env:test git --version
+        docker run --rm claude-dev-env:test docker --version
+        docker run --rm claude-dev-env:test kubectl version --client
+        
+    - name: Test docker-compose
+      run: |
+        # Create test .env
+        cp .env.example .env
+        echo "PROJECT_PATH=." >> .env
+        
+        # Test compose config
+        docker-compose config
+        
+    - name: Check image size
+      run: |
+        docker images claude-dev-env:test --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"

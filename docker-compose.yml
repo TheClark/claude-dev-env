@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  claude-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: claude-enhanced:latest
+    container_name: ${PROJECT_NAME:-claude-dev}
+    hostname: claude-dev
+    
+    volumes:
+      # Project mount - REQUIRED: Update this path in .env
+      - ${PROJECT_PATH:-/workspace}:/workspace
+      
+      # Persistent storage
+      - claude-home:/home/claude
+      - claude-cache:/home/claude/.cache
+      - claude-config:/home/claude/.config
+      - claude-local:/home/claude/.local
+      
+      # Development tools storage
+      - node-modules:/workspace/node_modules
+      - pip-cache:/home/claude/.cache/pip
+      - npm-cache:/home/claude/.npm
+      - cargo-cache:/home/claude/.cargo
+      
+      # Credentials and configs (optional)
+      - ${SSH_PATH:-~/.ssh}:/home/claude/.ssh:ro
+      - ${GIT_CONFIG:-~/.gitconfig}:/home/claude/.gitconfig:ro
+      - ${AWS_CONFIG:-~/.aws}:/home/claude/.aws:ro
+      - ${GCLOUD_CONFIG:-~/.config/gcloud}:/home/claude/.config/gcloud:ro
+      - ${AZURE_CONFIG:-~/.azure}:/home/claude/.azure:ro
+      - ${KUBE_CONFIG:-~/.kube}:/home/claude/.kube:ro
+      
+      # Docker socket for Docker-in-Docker (optional)
+      - /var/run/docker.sock:/var/run/docker.sock
+      
+      # Additional mounts can be added here
+      ${ADDITIONAL_MOUNTS:-}
+    
+    environment:
+      # Project
+      PROJECT_NAME: ${PROJECT_NAME:-my-project}
+      WORKSPACE_PATH: /workspace
+      
+      # Git
+      GIT_AUTHOR_NAME: ${GIT_USER_NAME:-}
+      GIT_AUTHOR_EMAIL: ${GIT_USER_EMAIL:-}
+      GIT_COMMITTER_NAME: ${GIT_USER_NAME:-}
+      GIT_COMMITTER_EMAIL: ${GIT_USER_EMAIL:-}
+      
+      # GitHub
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GH_TOKEN: ${GITHUB_TOKEN:-}
+      
+      # Cloud providers
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      GOOGLE_CLOUD_PROJECT: ${GCP_PROJECT:-}
+      AWS_PROFILE: ${AWS_PROFILE:-default}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
+      AZURE_SUBSCRIPTION_ID: ${AZURE_SUBSCRIPTION_ID:-}
+      
+      # Development
+      NODE_ENV: ${NODE_ENV:-development}
+      PYTHON_ENV: ${PYTHON_ENV:-development}
+      DEBUG: ${DEBUG:-true}
+      
+      # Database URLs (optional)
+      DATABASE_URL: ${DATABASE_URL:-}
+      POSTGRES_URL: ${POSTGRES_URL:-}
+      MYSQL_URL: ${MYSQL_URL:-}
+      MONGODB_URL: ${MONGODB_URL:-}
+      REDIS_URL: ${REDIS_URL:-}
+      
+      # API Keys (optional)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      
+      # Terminal
+      TERM: xterm-256color
+      COLORTERM: truecolor
+      
+      # Locale
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      
+      # Custom environment variables
+      ${CUSTOM_ENV_VARS:-}
+    
+    working_dir: /workspace
+    
+    # Network configuration
+    networks:
+      - claude-net
+      ${EXTERNAL_NETWORKS:-}
+    
+    # Extra hosts for local development
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      ${EXTRA_HOSTS:-}
+    
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: ${CPU_LIMIT:-4}
+          memory: ${MEMORY_LIMIT:-8G}
+        reservations:
+          cpus: ${CPU_RESERVATION:-2}
+          memory: ${MEMORY_RESERVATION:-4G}
+    
+    # Keep container running
+    stdin_open: true
+    tty: true
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Capabilities (for Docker-in-Docker)
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "echo", "healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  claude-home:
+    name: ${PROJECT_NAME:-claude}-home
+  claude-cache:
+    name: ${PROJECT_NAME:-claude}-cache
+  claude-config:
+    name: ${PROJECT_NAME:-claude}-config
+  claude-local:
+    name: ${PROJECT_NAME:-claude}-local
+  node-modules:
+    name: ${PROJECT_NAME:-claude}-node-modules
+  pip-cache:
+    name: ${PROJECT_NAME:-claude}-pip-cache
+  npm-cache:
+    name: ${PROJECT_NAME:-claude}-npm-cache
+  cargo-cache:
+    name: ${PROJECT_NAME:-claude}-cargo-cache
+
+networks:
+  claude-net:
+    name: ${PROJECT_NAME:-claude}-network
+    driver: bridge

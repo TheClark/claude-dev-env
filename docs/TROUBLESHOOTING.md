@@ -336,7 +336,7 @@ bash -n ./scripts/start-claude.sh
 ## 🆘 Getting More Help
 
 1. **Check existing issues:**
-   - Search [GitHub Issues](https://github.com/YOUR_USERNAME/claude-dev-env/issues)
+   - Search [GitHub Issues](https://github.com/TheClarkJB/claude-dev-env/issues)
 
 2. **Enable verbose logging:**
    ```bash

@@ -21,16 +21,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Java 8 if specifically needed (Dev Container has 11 & 17)
 RUN apt-get update && apt-get install -y openjdk-8-jdk && rm -rf /var/lib/apt/lists/*
 
-# Switch to the default user (codespace)
-USER codespace
-WORKDIR /home/codespace
+# Create a startup script to fix permissions
+RUN echo '#!/bin/bash\n\
+# Fix workspace permissions if running as root\n\
+if [ "$(id -u)" = "0" ] && [ -d "/workspace" ]; then\n\
+    echo "Fixing workspace permissions..."\n\
+    chown -R codespace:codespace /workspace 2>/dev/null || true\n\
+    chmod -R 755 /workspace 2>/dev/null || true\n\
+fi\n\
+# Switch to codespace user and run the actual entrypoint\n\
+exec su - codespace -c "cd /workspace && /bin/bash /home/codespace/scripts/entrypoint.sh $*"' > /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Install Claude Code
+# Install Claude Code as codespace user
+USER codespace
 RUN npm install -g @anthropic-ai/claude-code
 
-# Just set workdir - the directory should exist from volume mount
+# Switch back to root for the entrypoint (will switch to codespace internally)
+USER root
 WORKDIR /workspace
 
-# Use bash to run the mounted script (avoids permission issues)
-ENTRYPOINT ["/bin/bash", "/home/codespace/scripts/entrypoint.sh"]
+# Use the wrapper script as entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD []

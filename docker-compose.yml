@@ -1,4 +1,4 @@
-# Docker Compose configuration for Claude Dev Environment
+# Docker Compose configuration for Claude Dev Environment with fixed permissions
 version: '3.8'
 
 services:
@@ -9,11 +9,15 @@ services:
     image: ${PROJECT_NAME:-claude-dev}-claude:latest
     container_name: ${PROJECT_NAME:-claude-dev}
     hostname: claude-dev
+    privileged: true  # Allows permission changes
     restart: unless-stopped
+    
+    # Run as root initially (the entrypoint will switch to codespace user)
+    user: root
     
     volumes:
       # Project mount - REQUIRED: Update this path in .env
-      - ${PROJECT_PATH:-/workspace}:/workspace
+      - ${PROJECT_PATH:-/workspace}:/workspace:rw
       
       # Mount scripts directory for live updates
       - ./scripts:/home/codespace/scripts:ro
@@ -40,9 +44,6 @@ services:
       
       # Docker socket for Docker-in-Docker (optional)
       - /var/run/docker.sock:/var/run/docker.sock
-      
-      # Additional mounts can be added here
-      # ${ADDITIONAL_MOUNTS:-}
     
     environment:
       # Project
@@ -90,21 +91,16 @@ services:
       # Locale
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
-      
-      # Custom environment variables
-      # ${CUSTOM_ENV_VARS:-}
     
     working_dir: /workspace
     
     # Network configuration
     networks:
       - claude-net
-      # ${EXTERNAL_NETWORKS:-}
     
     # Extra hosts for local development
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      # ${EXTRA_HOSTS:-}
     
     # Resource limits (optional)
     deploy:
@@ -120,14 +116,19 @@ services:
     stdin_open: true
     tty: true
     
-    # Security options
-    security_opt:
-      - no-new-privileges:true
+    # Security options - removed no-new-privileges to allow user switching
+    # security_opt:
+    #   - no-new-privileges:true
     
-    # Capabilities (for Docker-in-Docker)
+    # Capabilities (for Docker-in-Docker and permission changes)
     cap_add:
       - SYS_ADMIN
       - NET_ADMIN
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
     
     # Health check
     healthcheck:

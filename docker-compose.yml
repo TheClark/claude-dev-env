@@ -1,3 +1,4 @@
+# Docker Compose configuration for Claude Dev Environment
 version: '3.8'
 
 services:
@@ -5,39 +6,43 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: claude-enhanced:latest
+    image: claude-dev:latest
     container_name: ${PROJECT_NAME:-claude-dev}
     hostname: claude-dev
+    restart: unless-stopped
     
     volumes:
       # Project mount - REQUIRED: Update this path in .env
       - ${PROJECT_PATH:-/workspace}:/workspace
       
+      # Mount scripts directory for live updates
+      - ./scripts:/home/codespace/scripts:ro
+      
       # Persistent storage
-      - claude-home:/home/claude
-      - claude-cache:/home/claude/.cache
-      - claude-config:/home/claude/.config
-      - claude-local:/home/claude/.local
+      - codespace-home:/home/codespace
+      - codespace-cache:/home/codespace/.cache
+      - codespace-config:/home/codespace/.config
+      - codespace-local:/home/codespace/.local
       
       # Development tools storage
       - node-modules:/workspace/node_modules
-      - pip-cache:/home/claude/.cache/pip
-      - npm-cache:/home/claude/.npm
-      - cargo-cache:/home/claude/.cargo
+      - pip-cache:/home/codespace/.cache/pip
+      - npm-cache:/home/codespace/.npm
+      - cargo-cache:/home/codespace/.cargo
       
       # Credentials and configs (optional)
-      - ${SSH_PATH:-~/.ssh}:/home/claude/.ssh:ro
-      - ${GIT_CONFIG:-~/.gitconfig}:/home/claude/.gitconfig:ro
-      - ${AWS_CONFIG:-~/.aws}:/home/claude/.aws:ro
-      - ${GCLOUD_CONFIG:-~/.config/gcloud}:/home/claude/.config/gcloud:ro
-      - ${AZURE_CONFIG:-~/.azure}:/home/claude/.azure:ro
-      - ${KUBE_CONFIG:-~/.kube}:/home/claude/.kube:ro
+      - ${SSH_PATH:-~/.ssh}:/home/codespace/.ssh:ro
+      - ${GIT_CONFIG:-~/.gitconfig}:/home/codespace/.gitconfig:ro
+      - ${AWS_CONFIG:-~/.aws}:/home/codespace/.aws:ro
+      - ${GCLOUD_CONFIG:-~/.config/gcloud}:/home/codespace/.config/gcloud:ro
+      - ${AZURE_CONFIG:-~/.azure}:/home/codespace/.azure:ro
+      - ${KUBE_CONFIG:-~/.kube}:/home/codespace/.kube:ro
       
       # Docker socket for Docker-in-Docker (optional)
       - /var/run/docker.sock:/var/run/docker.sock
       
       # Additional mounts can be added here
-      ${ADDITIONAL_MOUNTS:-}
+      # ${ADDITIONAL_MOUNTS:-}
     
     environment:
       # Project
@@ -87,19 +92,19 @@ services:
       LC_ALL: en_US.UTF-8
       
       # Custom environment variables
-      ${CUSTOM_ENV_VARS:-}
+      # ${CUSTOM_ENV_VARS:-}
     
     working_dir: /workspace
     
     # Network configuration
     networks:
       - claude-net
-      ${EXTERNAL_NETWORKS:-}
+      # ${EXTERNAL_NETWORKS:-}
     
     # Extra hosts for local development
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      ${EXTRA_HOSTS:-}
+      # ${EXTRA_HOSTS:-}
     
     # Resource limits (optional)
     deploy:
@@ -132,13 +137,13 @@ services:
       retries: 3
 
 volumes:
-  claude-home:
+  codespace-home:
     name: ${PROJECT_NAME:-claude}-home
-  claude-cache:
+  codespace-cache:
     name: ${PROJECT_NAME:-claude}-cache
-  claude-config:
+  codespace-config:
     name: ${PROJECT_NAME:-claude}-config
-  claude-local:
+  codespace-local:
     name: ${PROJECT_NAME:-claude}-local
   node-modules:
     name: ${PROJECT_NAME:-claude}-node-modules

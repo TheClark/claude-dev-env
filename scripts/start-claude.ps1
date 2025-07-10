@@ -7,7 +7,7 @@ param(
     [switch]$Build,
     [switch]$Rebuild,
     [switch]$Detach,
-    [string]$Shell = "/bin/bash",
+    [switch]$Shell,
     [switch]$NoInteractive,
     [switch]$Help
 )
@@ -39,13 +39,16 @@ OPTIONS:
     -Build                Build image before starting
     -Rebuild              Force rebuild image
     -Detach               Run in detached mode
-    -Shell SHELL          Shell to use (default: /bin/bash)
+    -Shell                Start shell only (no Claude Code)
     -NoInteractive        Don't attach to container
     -Help                 Show this help message
 
 EXAMPLES:
-    # Start with default settings
+    # Start with default settings (Claude Code)
     .\start-claude.ps1
+    
+    # Start shell only (no Claude Code)
+    .\start-claude.ps1 -Shell
     
     # Start specific project
     .\start-claude.ps1 -ProjectName my-project
@@ -173,26 +176,59 @@ if ($IsWSL) {
 Write-ColorOutput "=== Claude Development Environment ===" "Magenta"
 Write-ColorOutput "Project: $ProjectName" "Cyan"
 Write-ColorOutput "Path: $ProjectPath" "Cyan"
-Write-ColorOutput "Image: claude-enhanced:latest" "Cyan"
+Write-ColorOutput "Image: claude-dev:latest" "Cyan"
 Write-Host ""
 
 # Build or rebuild if requested
 if ($Rebuild) {
     Write-ColorOutput "Rebuilding Claude image..." "Yellow"
-    docker-compose build --no-cache claude-dev
+    
+    # Stop and remove existing container if it exists
+    $existingContainer = docker ps -a --filter "name=$ProjectName" --format "{{.Names}}"
+    if ($existingContainer) {
+        Write-ColorOutput "Removing existing container..." "Gray"
+        docker rm -f $ProjectName 2>$null
+    }
+    
+    # Remove existing image to force complete rebuild
+    $imageExists = docker images -q claude-dev:latest 2>$null
+    if ($imageExists) {
+        Write-ColorOutput "Removing old image..." "Gray"
+        docker rmi claude-dev:latest
+    }
+    
+    # Build fresh image
+    Write-ColorOutput "Building fresh image..." "Yellow"
+    docker build --no-cache -f Dockerfile -t claude-dev:latest .
+    if ($LASTEXITCODE -ne 0) {
+        Write-ColorOutput "Build failed!" "Red"
+        exit 1
+    }
+    Write-ColorOutput "Build completed successfully!" "Green"
 } elseif ($Build) {
     Write-ColorOutput "Building Claude image..." "Yellow"
-    docker-compose build claude-dev
+    # Build directly with Docker to avoid compose issues
+    docker build -f Dockerfile -t claude-dev:latest .
+    if ($LASTEXITCODE -ne 0) {
+        Write-ColorOutput "Build failed!" "Red"
+        exit 1
+    }
 }
 
 # Check if container is already running
 $runningContainers = docker ps --format "{{.Names}}"
 if ($runningContainers -contains $ProjectName) {
-    Write-ColorOutput "Container is already running!" "Green"
+    Write-ColorOutput "[OK] Container is already running!" "Green"
+    Write-ColorOutput "  No rebuild needed - using existing container" "Gray"
     
     if (-not $NoInteractive -and -not $Detach) {
-        Write-ColorOutput "Attaching to existing container..." "Blue"
-        docker exec -it $ProjectName $Shell
+        if ($Shell) {
+            Write-ColorOutput "Attaching to container shell..." "Blue"
+            docker exec -it $ProjectName /bin/bash
+        } else {
+            Write-ColorOutput "Attaching to existing container..." "Blue"
+            docker exec -it $ProjectName /bin/bash /home/codespace/scripts/entrypoint.sh
+        }
     } else {
         Write-ColorOutput "Container running in background" "Blue"
     }
@@ -202,34 +238,66 @@ if ($runningContainers -contains $ProjectName) {
 # Check if container exists but is stopped
 $allContainers = docker ps -a --format "{{.Names}}"
 if ($allContainers -contains $ProjectName) {
-    Write-ColorOutput "Starting existing container..." "Yellow"
+    Write-ColorOutput "[OK] Found existing container (stopped)" "Yellow"
+    Write-ColorOutput "  No rebuild needed - starting existing container" "Gray"
     docker start $ProjectName
     
     if (-not $NoInteractive -and -not $Detach) {
-        Write-ColorOutput "Attaching to container..." "Blue"
-        docker attach $ProjectName
+        if ($Shell) {
+            Write-ColorOutput "Attaching to container shell..." "Blue"
+            docker exec -it $ProjectName /bin/bash
+        } else {
+            Write-ColorOutput "Attaching to container..." "Blue"
+            docker attach $ProjectName
+        }
     }
     exit 0
+}
+
+# Check if image exists
+$existingImages = docker images --format "{{.Repository}}:{{.Tag}}"
+if ($existingImages -contains "claude-dev:latest" -and -not $Build -and -not $Rebuild) {
+    Write-ColorOutput "[OK] Using existing claude-dev image" "Green"
+    Write-ColorOutput "  No rebuild needed - starting from cached image" "Gray"
+} else {
+    Write-ColorOutput "[!] Image not found or build requested" "Yellow"
+    Write-ColorOutput "  This will take a few minutes on first run..." "Gray"
 }
 
 # Start new container
 Write-ColorOutput "Starting new Claude container..." "Green"
 
-# Prepare docker-compose command
-$composeArgs = @("up")
+# Use docker-compose for better management
 if ($Detach) {
-    $composeArgs += "-d"
+    docker-compose up -d claude-dev
+    Write-ColorOutput "Container started in background" "Green"
+} else {
+    # Start detached then exec to get proper signal handling
+    docker-compose up -d claude-dev
+    
+    # Wait for container to be ready
+    Start-Sleep -Seconds 2
+    
+    # Exec into container
+    if ($Shell) {
+        Write-ColorOutput "Attaching to container shell..." "Blue"
+        docker exec -it $ProjectName /bin/bash
+    } else {
+        Write-ColorOutput "Attaching to container..." "Blue"
+        docker exec -it $ProjectName /bin/bash /home/codespace/scripts/entrypoint.sh
+    }
+    
+    # Check if the exec command failed
+    if ($LASTEXITCODE -ne 0) {
+        Write-ColorOutput "Container execution ended with code: $LASTEXITCODE" "Yellow"
+    }
 }
-$composeArgs += "claude-dev"
-
-# Start container
-docker-compose @composeArgs
 
 # If interactive and detached, exec into container
 if (-not $NoInteractive -and $Detach) {
     Write-ColorOutput "Attaching to container..." "Blue"
     Start-Sleep -Seconds 2  # Give container time to start
-    docker exec -it $ProjectName $Shell
+    docker exec -it $ProjectName /bin/bash
 }
 
 # Show helpful commands
@@ -237,7 +305,8 @@ if ($Detach) {
     Write-Host ""
     Write-ColorOutput "Container started successfully!" "Green"
     Write-ColorOutput "Useful commands:" "Cyan"
-    Write-Host "  Attach to container:  docker exec -it $ProjectName $Shell"
+    Write-Host "  Attach to container:  docker exec -it $ProjectName /bin/bash"
+    Write-Host "  Start Claude Code:   docker exec -it $ProjectName claude"
     Write-Host "  View logs:           docker logs -f $ProjectName"
     Write-Host "  Stop container:      docker stop $ProjectName"
     Write-Host "  Remove container:    docker rm -f $ProjectName"

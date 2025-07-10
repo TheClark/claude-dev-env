@@ -1,193 +1,264 @@
-# Claude Development Environment
+# Claude Code Docker Environment for Windows
 
-🚀 **A comprehensive Docker-based development environment with Claude Code and all modern development tools pre-installed.**
+🚀 **Run Claude Code on large codebases from Windows with all development tools pre-installed**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Required-blue.svg)](https://www.docker.com/)
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-green.svg)](https://github.com/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20(WSL2)-blue.svg)](https://github.com/)
 
-## 🎯 Quick Start
+## 🎯 Purpose
 
-```bash
-# Clone into your project
-git clone https://github.com/TheClark/claude-dev-env.git claude-setup
+This Docker environment solves a common problem: **running Claude Code on Windows with large codebases**. It provides:
+
+- ✅ **Claude Code pre-installed** - Starts automatically when you enter the container
+- ✅ **Windows path handling** - Seamlessly converts Windows paths to Linux paths
+- ✅ **Large codebase support** - Mount any size project without file limitations
+- ✅ **All development tools included** - No need to install dependencies on Windows
+- ✅ **Persistent environment** - Your settings and work persist between sessions
+
+## 🎯 Quick Start for Windows Users
+
+```powershell
+# 1. Clone this repo into your project (or anywhere)
+git clone https://github.com/YOUR_USERNAME/claude-code-docker.git claude-setup
 cd claude-setup
 
-# Configure
-cp .env.example .env
-# Edit .env - set PROJECT_PATH=../ for parent directory
+# 2. Run the setup wizard
+powershell -ExecutionPolicy Bypass -File .\init.ps1
 
-# Start Claude
-./scripts/start-claude.sh --build
+# 3. Claude Code starts automatically!
 ```
 
-## ✨ Features
+The setup wizard will:
+1. ✅ Check Docker Desktop is running
+2. ✅ Ask where your code is located (e.g., `C:\Users\YourName\MyProject`)
+3. ✅ Set up your GitHub and Anthropic credentials
+4. ✅ Build the Docker image (~3-5 minutes first time)
+5. ✅ Launch Claude Code with your project mounted
+
+## 🔧 Why Use This?
+
+### The Problem
+- Claude Code on Windows can have issues with large codebases
+- Installing all development dependencies on Windows is complex
+- Path handling between Windows and Linux tools is problematic
+- Environment inconsistencies between team members
+
+### The Solution
+- Run Claude Code in a Linux container with your Windows files mounted
+- All tools pre-installed: Python, Node.js, Java, Git, and more
+- Automatic path conversion (e.g., `C:\MyProject` → `/workspace`)
+- Consistent environment that works the same for everyone
+
+## 💡 Typical Use Cases
+
+### Working with Large Codebases
+```powershell
+# Your large project at C:\Work\BigProject
+PROJECT_PATH=C:\Work\BigProject
+
+# Claude Code can now access all files without Windows limitations
+# Work with millions of files, deep directory structures, long paths
+```
+
+### Multiple Language Projects
+```powershell
+# Project with Python backend, React frontend, Java services
+# All tools are pre-installed - no setup needed!
+```
+
+### Team Collaboration
+```powershell
+# Everyone uses the same environment
+# No more "works on my machine" issues
+```
+
+## ✨ What's Included
+
+### 🤖 Claude Code Features
+- **Pre-installed Claude Code** - Latest version, starts automatically
+- **Optimized for large codebases** - No file count or path length limits
+- **Persistent sessions** - Your work saves between restarts
+- **Credential management** - GitHub and Anthropic API keys configured
 
 ### 🛠️ Development Tools
-- **Languages**: Python 3, Node.js 20 LTS, Go, Rust
-- **Package Managers**: pip, npm, yarn, pnpm, poetry, pipenv
-- **Cloud CLIs**: AWS, Google Cloud, Azure
-- **Containers**: Docker, kubectl, Helm
-- **Databases**: PostgreSQL, MySQL, MongoDB, Redis clients
-- **Frontend**: React, Vue, Angular, Next.js, Vite
-- **Testing**: Jest, Pytest, Cypress, Playwright
-- **More**: Git, GitHub CLI, tmux, and 50+ tools
+- **Languages**: Python 3, Node.js 20, Java 8, Go 1.21, Rust, .NET 8
+- **Package Managers**: npm/yarn/pnpm, pip/poetry/pipenv, Maven/Gradle, cargo
+- **Version Control**: Git, GitHub CLI, SVN
+- **Frontend**: React, Vue, Angular, Vite, TypeScript
+- **Backend**: Flask, Django, FastAPI, Express
+- **Databases**: PostgreSQL, MySQL, Redis, SQLite clients
+- **And much more**: See full list below
 
-### 🔑 Key Benefits
-- **📁 Relative Paths**: Use `PROJECT_PATH=../` to mount parent directory
-- **🔄 Persistent Storage**: Your work persists between restarts
-- **🔐 Credential Management**: Secure mounting of SSH keys and cloud credentials
-- **🌐 Remote Shares**: Support for Windows network shares (SMB/CIFS)
-- **💻 Cross-Platform**: Works on Windows (WSL2), Linux, and macOS
-- **🚀 Multiple Projects**: Run isolated instances for different projects
+## 📋 Prerequisites (Windows)
 
-## 📋 Prerequisites
+- ✅ **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop/)
+- ✅ **WSL2** - Usually comes with Docker Desktop
+- ✅ **8GB+ RAM** - For smooth performance
+- ✅ **10GB free disk space** - For Docker image and tools
 
-- Docker Desktop installed and running
-- WSL2 (Windows users)
-- 8GB+ RAM
-- 20GB free disk space
+## 🔧 Installation Options
 
-## 🔧 Installation
+### Option 1: Quick Setup (Recommended)
 
-### Method 1: Clone into Your Project (Recommended)
+```powershell
+# Run from PowerShell in your project directory
+cd C:\YourProject
 
-```bash
-# Navigate to your project
-cd my-awesome-project
-
-# Clone claude-dev-env
-git clone https://github.com/TheClark/claude-dev-env.git claude-setup
-
-# Configure for your project
+# Clone and setup
+git clone https://github.com/YOUR_USERNAME/claude-code-docker.git claude-setup
 cd claude-setup
-cp .env.example .env
-# Edit .env and set PROJECT_PATH=../
-
-# Start developing!
-./scripts/start-claude.sh
+powershell -ExecutionPolicy Bypass -File .\init.ps1
 ```
 
-### Method 2: Global Installation
+### Option 2: Manual Setup
 
-```bash
-# Clone to a tools directory
-mkdir -p ~/tools
-cd ~/tools
-git clone https://github.com/TheClark/claude-dev-env.git
+```powershell
+# 1. Clone anywhere
+cd C:\Tools
+git clone https://github.com/YOUR_USERNAME/claude-code-docker.git
 
-# For each project, copy and configure
-cp -r ~/tools/claude-dev-env ~/projects/my-project/claude-setup
-cd ~/projects/my-project/claude-setup
-cp .env.example .env
-# Edit .env accordingly
+# 2. Copy to your project
+Copy-Item -Recurse C:\Tools\claude-code-docker C:\YourProject\claude-setup
+
+# 3. Configure
+cd C:\YourProject\claude-setup
+copy .env.example .env
+# Edit .env with your PROJECT_PATH
+
+# 4. Start
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
 ```
 
-### Method 3: Git Submodule
+### Option 3: Shared Installation
 
-```bash
-# Add as a submodule to your project
-cd my-project
-git submodule add https://github.com/YOUR_USERNAME/claude-dev-env.git claude-setup
-git submodule update --init
-
-# Configure
-cd claude-setup
-cp .env.example .env
-# Edit .env with PROJECT_PATH=../
+```powershell
+# One installation, multiple projects
+# Install once in C:\Tools\claude-code-docker
+# Create different .env files for each project:
+# - .env.project1
+# - .env.project2
+# Start with: .\scripts\start-claude.ps1 -EnvFile .env.project1
 ```
 
 ## ⚙️ Configuration
 
-### Basic Setup (.env file)
+### Essential Settings (.env file)
 
-```bash
-# Project name (container/volume names)
+```ini
+# Your project name (used for container name)
 PROJECT_NAME=my-project
 
-# Project path (relative paths supported!)
-PROJECT_PATH=../              # Parent directory
-# PROJECT_PATH=../../          # Two levels up
-# PROJECT_PATH=../backend     # Sibling directory
+# Path to your code (Windows paths auto-converted)
+PROJECT_PATH=C:\Users\YourName\Projects\MyBigProject
+# Or use relative paths:
+# PROJECT_PATH=..                    # Parent directory
+# PROJECT_PATH=..\..                 # Two levels up
 
-# Git config
-GIT_USER_NAME="Your Name"
-GIT_USER_EMAIL="you@example.com"
+# Git configuration
+GIT_USER_NAME=Your Name
+GIT_USER_EMAIL=you@example.com
 
-# Optional: GitHub token for gh CLI
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+# API Keys (get from respective websites)
+GITHUB_TOKEN=ghp_xxxxxxxxxxxx      # https://github.com/settings/tokens
+ANTHROPIC_API_KEY=sk-ant-xxx       # https://console.anthropic.com/
 ```
 
-### Common Project Structures
+### Example Windows Paths
 
-```
-# Claude inside project
-my-project/
-├── src/
-├── claude-setup/         # PROJECT_PATH=../
-└── package.json
+```powershell
+# Typical Windows project locations
+PROJECT_PATH=C:\Users\John\source\repos\MyProject
+PROJECT_PATH=D:\Development\CompanyProject
+PROJECT_PATH=C:\Work\ClientName\ProjectName
 
-# Shared setup
-workspace/
-├── backend/
-├── frontend/
-└── claude-setup/         # PROJECT_PATH=../backend or ../frontend
-
-# Monorepo
-monorepo/
-├── apps/
-├── packages/
-└── tools/
-    └── claude-setup/     # PROJECT_PATH=../../
+# Network drives also work
+PROJECT_PATH=Z:\SharedCode\TeamProject
+PROJECT_PATH=\\server\share\project    # UNC paths
 ```
 
-## 🚀 Usage
+## 🚀 Daily Usage
 
-### Starting Claude
+### Starting Claude Code
+
+#### Option 1: Using Start Script (Recommended)
+```powershell
+# From your claude-setup directory
+cd C:\YourProject\claude-setup
+
+# Start Claude Code (no rebuild needed after first time)
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
+
+# Claude Code launches automatically!
+
+# Or start shell only (no Claude Code)
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Shell
+```
+
+#### Option 2: Using Docker Compose Directly
+```powershell
+# Start
+docker-compose up -d
+docker-compose exec claude-dev /home/claude/scripts/entrypoint.sh
+
+# Or use the helper script
+.\compose-commands.ps1 up
+```
+
+### Using Claude Code
+
+Once started, Claude Code runs with full access to your project:
 
 ```bash
-# First time (builds image)
-./scripts/start-claude.sh --build
+# Your entire project is mounted at /workspace
+# All file operations work seamlessly
+# No Windows path issues or limitations
 
-# Normal start
-./scripts/start-claude.sh
-
-# Run in background
-./scripts/start-claude.sh --detach
-
-# Windows PowerShell
-.\scripts\start-claude.ps1
+# Claude Code commands available:
+claude --help      # See all options
+claude chat       # Start a chat session
+claude --version  # Check version
 ```
 
-### Inside the Container
+### Working with Your Code
 
 ```bash
-# Python development
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# All development tools are available
+git status                    # Version control
+npm install                   # Node.js packages
+python -m pip install -r requirements.txt  # Python packages
+gradle build                  # Java projects
 
-# Node.js development
-npm install
-npm run dev
-
-# Use any installed tool
-docker --version
-kubectl get pods
-gh pr create
-aws s3 ls
+# Your changes persist on your Windows filesystem
+# Edit files in Windows or in the container - both work!
 ```
 
-### Managing Multiple Projects
+### Stopping and Restarting
 
-```bash
-# Different .env files
-./scripts/start-claude.sh --env .env.backend
-./scripts/start-claude.sh --env .env.frontend
+```powershell
+# Exit Claude Code and container
+exit  # or Ctrl+D
 
-# Or different PROJECT_NAME in each .env
-PROJECT_NAME=my-backend
-PROJECT_NAME=my-frontend
+# Restart later (instant - no rebuild)
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
+
+# Your work is exactly where you left it
+```
+
+### Additional Docker Compose Commands
+
+```powershell
+# View logs
+docker-compose logs -f
+
+# Stop container
+docker-compose down
+
+# Restart container
+docker-compose restart
+
+# Check status
+docker-compose ps
 ```
 
 ## 📚 Documentation
@@ -211,86 +282,122 @@ Contributions are welcome! Please:
 <details>
 <summary>Click to see full tool list</summary>
 
-### Programming Languages
-- Python 3.11+ with pip, poetry, pipenv
-- Node.js 20 LTS with npm, yarn, pnpm
-- Go 1.21+
-- Rust with cargo
-- Java (via apt)
-- Ruby (via apt)
+### Programming Languages & Runtimes
+- **Python 3** with pip, virtualenv, poetry, pipenv
+- **Node.js 20 LTS** with npm, yarn, pnpm
+- **Java 8 SDK** (OpenJDK 8) with Maven & Gradle
+- **Go 1.21** with gopls, delve, golangci-lint
+- **Rust** (latest) with cargo, rustfmt, clippy
+- **.NET 8 SDK** for C# development
+- **Claude Code** pre-installed and ready
 
-### Cloud & DevOps
-- AWS CLI v2
-- Google Cloud SDK
-- Azure CLI
-- Terraform
-- Ansible
-- Docker CLI & Compose
-- Kubernetes (kubectl, helm, k9s)
+### Build Tools & Package Managers
+- **Gradle 8.5** - Modern Java build tool
+- **Maven** - Classic Java build tool
+- **npm, yarn, pnpm** - JavaScript package managers
+- **pip, poetry, pipenv** - Python package managers
+- **cargo** - Rust package manager
+- **go mod** - Go modules
+- **dotnet** - .NET CLI
+- Build essentials (gcc, make, etc.)
 
-### Databases
-- PostgreSQL client
-- MySQL client
-- MongoDB client
-- Redis tools
-- SQLite3
+### Version Control
+- **Git** - Distributed version control
+- **GitHub CLI (gh)** - GitHub from the command line
+- **Subversion (SVN)** - Legacy version control support
+
+### Frontend Development
+- **React** - create-react-app, react-scripts
+- **Vue** - @vue/cli
+- **Angular** - @angular/cli
+- **Vite** - Lightning fast build tool
+- **TypeScript** - Typed JavaScript
+- **Webpack** - Module bundler
+- **ESLint & Prettier** - Code quality
+- **Jest** - Testing framework
+- **Vercel & Netlify CLI** - Deployment tools
+- **Firebase Tools** - Backend services
+
+### Python Development
+- **Web Frameworks** - Flask, Django, FastAPI
+- **Data Science** - pandas, numpy, matplotlib, jupyter
+- **Testing** - pytest
+- **Code Quality** - black, flake8, mypy
+- **Async** - uvicorn, celery
+- **Database** - sqlalchemy, redis
+- **Cloud SDKs** - boto3, google-cloud, azure-storage
+
+### Database Clients
+- **PostgreSQL** - psql client
+- **MySQL** - mysql client  
+- **Redis** - redis-cli
+- **SQLite3** - sqlite3 CLI
 
 ### Development Tools
-- Git & GitHub CLI
-- VS Code (web)
-- tmux
-- jq, yq
-- HTTPie
-- Make, CMake
-- Pre-commit
+- **Docker CLI** - Container management
+- **jq** - JSON processor
+- **tree** - Directory visualization
+- **tmux & screen** - Terminal multiplexers
+- **htop & iotop** - System monitoring
+- **ncdu** - Disk usage analyzer
+- **curl & wget** - Download tools
+- **nano & vim** - Text editors
+- **zip/unzip** - Archive tools
+- Network tools (ping, netstat)
 
-### Frontend Tools
-- Create React App
-- Next.js
-- Vue CLI
-- Angular CLI
-- Vite
-- Webpack
-- Parcel
-
-### Testing Tools
-- Jest
-- Mocha
-- Cypress
-- Playwright
-- Pytest
-- Coverage tools
-
-### And much more...
+### Pre-configured Environment
+- Claude Code starts automatically
+- Git credentials configured from .env
+- npm global packages in user directory
+- Python packages in user directory
+- Persistent home directory
+- Your project mounted at /workspace
 
 </details>
 
 ## 🐛 Troubleshooting
 
-### Container won't start
-```bash
-# Check Docker
-docker version
+### PowerShell Script Error
+```powershell
+# If you see "cannot be loaded because running scripts is disabled"
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
 
-# Check logs
-docker logs claude-dev
-
-# Remove old container
-docker rm -f claude-dev
+# Or permanently allow scripts
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-### Permission issues
-```bash
-# Fix SSH permissions
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/id_*
+### Docker Not Running
+```powershell
+# Error: "Docker is not running"
+# Solution: Start Docker Desktop from Windows Start Menu
+# Wait for Docker to fully start (system tray icon turns green)
 ```
 
-### Path not found
-```bash
-# Verify relative path
-cd claude-setup
-ls ../  # Should show your project files
+### Path Issues
+```powershell
+# If PROJECT_PATH not found, check:
+# 1. Path exists: Test-Path "C:\YourPath"
+# 2. No typos in path
+# 3. Use full absolute path, not relative
+```
+
+### Claude Code Not Starting
+```powershell
+# Force rebuild if Claude Code is missing
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Rebuild
+
+# Check if installed
+docker exec claude-dev which claude
+
+# Or use shell mode to debug
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Shell
+```
+
+### Large Codebase Performance
+```ini
+# In .env file, increase resources:
+CPU_LIMIT=8
+MEMORY_LIMIT=16G
 ```
 
 ## 📄 License

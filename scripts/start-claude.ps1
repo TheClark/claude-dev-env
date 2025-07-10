@@ -71,6 +71,9 @@ if ($Help) {
 # Change to project root
 Set-Location $ProjectRoot
 
+# Set window title to show project name
+$Host.UI.RawUI.WindowTitle = "Claude Dev - $ProjectName"
+
 # Load environment file
 $EnvFilePath = if ([System.IO.Path]::IsPathRooted($EnvFile)) { $EnvFile } else { Join-Path $ProjectRoot $EnvFile }
 
@@ -100,6 +103,12 @@ if (Test-Path $EnvFilePath) {
 # Get environment variables
 $env:PROJECT_NAME = $ProjectName
 $ProjectPath = [Environment]::GetEnvironmentVariable("PROJECT_PATH", "Process")
+
+# Update window title with actual project name from env if available
+if ([Environment]::GetEnvironmentVariable("PROJECT_NAME", "Process")) {
+    $ActualProjectName = [Environment]::GetEnvironmentVariable("PROJECT_NAME", "Process")
+    $Host.UI.RawUI.WindowTitle = "Claude Dev - $ActualProjectName"
+}
 
 # Convert Windows path to WSL path if needed
 function Convert-ToWSLPath {

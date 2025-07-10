@@ -20,16 +20,27 @@ This Docker environment solves a common problem: **running Claude Code on Window
 
 ```powershell
 # 1. Clone this repo into your project (or anywhere)
-git clone https://github.com/YOUR_USERNAME/claude-code-docker.git claude-setup
+git clone https://github.com/TheClark/claude-dev-env.git claude-setup
 cd claude-setup
 
-# 2. Run the setup wizard
-powershell -ExecutionPolicy Bypass -File .\init.ps1
+# 2. Copy the example env file and edit it
+copy .env.example .env
+# Edit .env with your project path and credentials
+
+# 3. Run the start script
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
 
 # 3. Claude Code starts automatically!
 ```
 
-The setup wizard will:
+### Alternative: Using the Setup Wizard
+
+If you prefer a guided setup, use the init script:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\init.ps1
+```
+
+This will:
 1. ✅ Check Docker Desktop is running
 2. ✅ Ask where your code is located (e.g., `C:\Users\YourName\MyProject`)
 3. ✅ Set up your GitHub and Anthropic credentials
@@ -413,7 +424,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔗 Links
 
 - [Report Issues](https://github.com/TheClark/claude-dev-env/issues)
-- [Discussions](https://github.com/TheClark/claude-dev-env/discussions)
+- [Discussions](https://github.com/TheClark/claude-dev-env/discussions)  
 - [Wiki](https://github.com/TheClark/claude-dev-env/wiki)
 
 ---

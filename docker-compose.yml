@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: claude-dev:latest
+    image: ${PROJECT_NAME:-claude-dev}-claude:latest
     container_name: ${PROJECT_NAME:-claude-dev}
     hostname: claude-dev
     restart: unless-stopped

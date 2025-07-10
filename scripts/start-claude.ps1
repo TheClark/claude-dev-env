@@ -185,7 +185,7 @@ if ($IsWSL) {
 Write-ColorOutput "=== Claude Development Environment ===" "Magenta"
 Write-ColorOutput "Project: $ProjectName" "Cyan"
 Write-ColorOutput "Path: $ProjectPath" "Cyan"
-Write-ColorOutput "Image: claude-dev:latest" "Cyan"
+Write-ColorOutput "Image: ${ProjectName}-claude:latest" "Cyan"
 Write-Host ""
 
 # Build or rebuild if requested
@@ -200,15 +200,16 @@ if ($Rebuild) {
     }
     
     # Remove existing image to force complete rebuild
-    $imageExists = docker images -q claude-dev:latest 2>$null
+    $imageName = "${ProjectName}-claude:latest"
+    $imageExists = docker images -q $imageName 2>$null
     if ($imageExists) {
         Write-ColorOutput "Removing old image..." "Gray"
-        docker rmi claude-dev:latest
+        docker rmi $imageName
     }
     
     # Build fresh image
     Write-ColorOutput "Building fresh image..." "Yellow"
-    docker build --no-cache -f Dockerfile -t claude-dev:latest .
+    docker build --no-cache -f Dockerfile -t $imageName .
     if ($LASTEXITCODE -ne 0) {
         Write-ColorOutput "Build failed!" "Red"
         exit 1
@@ -217,7 +218,8 @@ if ($Rebuild) {
 } elseif ($Build) {
     Write-ColorOutput "Building Claude image..." "Yellow"
     # Build directly with Docker to avoid compose issues
-    docker build -f Dockerfile -t claude-dev:latest .
+    $imageName = "${ProjectName}-claude:latest"
+    docker build -f Dockerfile -t $imageName .
     if ($LASTEXITCODE -ne 0) {
         Write-ColorOutput "Build failed!" "Red"
         exit 1
@@ -264,9 +266,10 @@ if ($allContainers -contains $ProjectName) {
 }
 
 # Check if image exists
+$imageName = "${ProjectName}-claude:latest"
 $existingImages = docker images --format "{{.Repository}}:{{.Tag}}"
-if ($existingImages -contains "claude-dev:latest" -and -not $Build -and -not $Rebuild) {
-    Write-ColorOutput "[OK] Using existing claude-dev image" "Green"
+if ($existingImages -contains $imageName -and -not $Build -and -not $Rebuild) {
+    Write-ColorOutput "[OK] Using existing $imageName image" "Green"
     Write-ColorOutput "  No rebuild needed - starting from cached image" "Gray"
 } else {
     Write-ColorOutput "[!] Image not found or build requested" "Yellow"

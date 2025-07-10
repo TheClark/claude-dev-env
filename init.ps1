@@ -218,7 +218,8 @@ Write-ColorOutput "Building Docker image..." "Yellow"
 Set-Location $ScriptDir
 
 # Build the image directly with Docker to avoid compose path issues
-docker build -f Dockerfile -t claude-dev:latest .
+# Use project-specific image name to avoid conflicts
+docker build -f Dockerfile -t "${projectName}-claude:latest" .
 
 if ($LASTEXITCODE -ne 0) {
     Write-ColorOutput "[ERROR] Build failed" "Red"

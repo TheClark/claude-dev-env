@@ -33,6 +33,29 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
 # 3. Claude Code starts automatically!
 ```
 
+### 🎉 Now What? Getting Started with Claude Code
+
+Once Claude Code starts, you're ready to work with your codebase! Here's how to get started:
+
+```bash
+# Your entire project is mounted at /workspace
+cd /workspace
+
+# See your project files
+ls -la
+
+# Start working with Claude
+# Example: "Help me understand this codebase"
+# Example: "Find all API endpoints in this project"
+# Example: "Write unit tests for the user service"
+```
+
+**Quick tips:**
+- 📁 Your Windows project (e.g., `C:\MyProject`) is available at `/workspace` in the container
+- 💾 All changes are saved directly to your Windows filesystem in real-time
+- 🔄 Exit anytime with `exit` or Ctrl+D - your work persists
+- 🚀 Restart instantly with the same start script - no rebuild needed
+
 ### Alternative: Using the Setup Wizard
 
 If you prefer a guided setup, use the init script:
@@ -92,6 +115,54 @@ PROJECT_PATH=C:\Work\BigProject
 - **Persistent sessions** - Your work saves between restarts
 - **Credential management** - GitHub and Anthropic API keys configured
 
+### 🚀 What Claude Code Can Do For You
+
+Claude Code isn't just a chatbot - it's a full-featured development assistant that can:
+
+#### 📝 Code & Development
+- **Write and refactor code** - Generate new features, improve existing code, fix bugs
+- **Understand your codebase** - Analyze architecture, find dependencies, explain complex logic
+- **Write tests** - Create unit tests, integration tests, and test documentation
+- **Debug issues** - Analyze errors, trace problems, suggest fixes
+
+#### 🔄 Git & Version Control
+- **Create commits** - Stage changes and commit with well-written messages
+- **Push to remote** - Push your changes to GitHub/GitLab/Bitbucket
+- **Create pull requests** - Open PRs with detailed descriptions
+- **Review git history** - Analyze commits, diffs, and blame
+
+#### 🐙 GitHub Integration
+- **Manage issues** - Create, update, close, and comment on GitHub issues
+- **Work with PRs** - Create, review, and manage pull requests
+- **Check CI/CD status** - View workflow runs and check results
+- **Browse repositories** - Fetch and analyze code from any public repo
+
+#### 🛠️ Development Workflow
+- **Run builds** - Execute npm, gradle, maven, make, and other build tools
+- **Run tests** - Execute test suites and analyze results
+- **Install dependencies** - Manage packages with npm, pip, maven, etc.
+- **Database operations** - Connect to and query databases
+- **API testing** - Make HTTP requests and test endpoints
+
+#### 📊 Advanced Features
+- **Multi-file edits** - Refactor across multiple files simultaneously
+- **Code search** - Find patterns, implementations, and usages across large codebases
+- **Documentation** - Generate and update technical documentation
+- **Performance analysis** - Profile and optimize code
+- **Security review** - Identify potential vulnerabilities
+
+Example commands you can try:
+```bash
+"Help me understand the architecture of this project"
+"Find all API endpoints and document them"
+"Create a new feature for user authentication"
+"Fix the failing tests in the test suite"
+"Refactor this class to use modern patterns"
+"Create a GitHub issue for the bug we just found"
+"Commit these changes with a descriptive message"
+"Make a pull request for this feature branch"
+```
+
 ### 🛠️ Development Tools
 - **Languages**: Python 3, Node.js 20, Java 8, Go 1.21, Rust, .NET 8
 - **Package Managers**: npm/yarn/pnpm, pip/poetry/pipenv, Maven/Gradle, cargo
@@ -101,12 +172,22 @@ PROJECT_PATH=C:\Work\BigProject
 - **Databases**: PostgreSQL, MySQL, Redis, SQLite clients
 - **And much more**: See full list below
 
-## 📋 Prerequisites (Windows)
+## 📋 Prerequisites
 
+### Supported Operating Systems
+- ✅ **Windows 10** (version 1903, build 18362 or higher)
+- ✅ **Windows 11** (all versions)
+- ✅ **Windows Server 2019** or newer
+- ✅ **Windows Server 2025** (confirmed working)
+- ❌ **Not supported**: Windows Server 2012, Windows Server 2016, older Windows 10 builds
+
+### Requirements
 - ✅ **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop/)
 - ✅ **WSL2** - Usually comes with Docker Desktop
 - ✅ **8GB+ RAM** - For smooth performance
 - ✅ **10GB free disk space** - For Docker image and tools
+
+⚠️ **Important Note**: Do not use this environment with SMB shares or Windows mapped drives. The Docker volume mounting may not work correctly with these network file systems. Store your project on a local drive for best performance and compatibility.
 
 ## 🔧 Installation Options
 
@@ -210,10 +291,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Shell
 ```powershell
 # Start
 docker-compose up -d
-docker-compose exec claude-dev /home/claude/scripts/entrypoint.sh
+docker-compose exec claude-dev bash
 
-# Or use the helper script
-.\compose-commands.ps1 up
+# The container will automatically start Claude Code
 ```
 
 ### Using Claude Code

@@ -1,250 +1,198 @@
-# Claude Dev Environment - Interactive Setup Script
-# This script guides you through setting up your Claude development environment
-
-param(
-    [switch]$SkipPrompts,
-    [switch]$Help
-)
+# Claude Code Docker Environment - Initialization Script
+# This script guides you through setting up the environment
 
 $ErrorActionPreference = "Stop"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# ASCII Art Banner
-function Show-Banner {
-    Write-Host @"
+Write-Host ""
+Write-Host ">> Claude Code Docker Environment Setup" -ForegroundColor Cyan
+Write-Host "=======================================" -ForegroundColor Cyan
+Write-Host ""
 
-    ╔═══════════════════════════════════════════════════════╗
-    ║         Claude Dev Environment Setup Wizard           ║
-    ╚═══════════════════════════════════════════════════════╝
-    
-"@ -ForegroundColor Cyan
-}
-
-# Colors for output
-function Write-ColorOutput {
-    param(
-        [string]$Message,
-        [string]$Color = "White"
-    )
-    Write-Host $Message -ForegroundColor $Color
-}
-
-# Show usage
-function Show-Usage {
-    Write-Host @"
-Usage: init.ps1 [OPTIONS]
-
-Interactive setup wizard for Claude development environment
-
-OPTIONS:
-    -SkipPrompts    Use defaults where possible
-    -Help           Show this help message
-
-This script will:
-1. Create your .env configuration file
-2. Set up your credentials (GitHub, Anthropic)
-3. Build the Docker image
-4. Start the container with Claude Code ready to use
-
-"@
-}
-
-if ($Help) {
-    Show-Usage
-    exit 0
-}
-
-# Clear screen and show banner
-Clear-Host
-Show-Banner
-
-Write-ColorOutput "Welcome to Claude Dev Environment Setup!" "Green"
-Write-ColorOutput "This wizard will help you get started in just a few minutes.`n" "White"
-
-# Check prerequisites
-Write-ColorOutput "Checking prerequisites..." "Yellow"
+# Welcome message
+Write-Host "Welcome! This script will help you set up Claude Code in Docker." -ForegroundColor Green
+Write-Host "You'll need:" -ForegroundColor White
+Write-Host "  * Docker Desktop installed and running" -ForegroundColor Gray
+Write-Host "  * Your project path" -ForegroundColor Gray
+Write-Host "  * GitHub token (optional)" -ForegroundColor Gray
+Write-Host "  * Anthropic API key (optional)" -ForegroundColor Gray
+Write-Host ""
 
 # Check Docker
+Write-Host ">> Checking Docker..." -ForegroundColor Yellow
 try {
-    $dockerVersion = docker --version
-    Write-ColorOutput "[OK] Docker is installed: $dockerVersion" "Green"
+    docker version | Out-Null
+    Write-Host "[OK] Docker is running" -ForegroundColor Green
 } catch {
-    Write-ColorOutput "[ERROR] Docker is not installed or not in PATH" "Red"
-    Write-ColorOutput "Please install Docker Desktop from: https://www.docker.com/products/docker-desktop" "Yellow"
-    exit 1
-}
-
-# Check if Docker is running
-try {
-    docker ps | Out-Null
-    Write-ColorOutput "[OK] Docker is running" "Green"
-} catch {
-    Write-ColorOutput "[ERROR] Docker is not running" "Red"
-    Write-ColorOutput "Please start Docker Desktop and try again" "Yellow"
+    Write-Host "[ERROR] Docker is not running!" -ForegroundColor Red
+    Write-Host "Please start Docker Desktop and run this script again." -ForegroundColor Red
+    Read-Host "Press Enter to exit"
     exit 1
 }
 
 Write-Host ""
 
 # Get project information
-Write-ColorOutput "=== Project Configuration ===" "Magenta"
+Write-Host ">> PROJECT SETUP" -ForegroundColor Yellow
+Write-Host "===============" -ForegroundColor Yellow
 
 # Project name
-$projectName = Read-Host "Enter project name (default: claude-dev)"
-if ([string]::IsNullOrWhiteSpace($projectName)) {
-    $projectName = "claude-dev"
+$projectName = Read-Host "Project name (for container naming, lowercase/no spaces)"
+if (-not $projectName) {
+    $projectName = "my-project"
 }
+$projectName = $projectName.ToLower() -replace '[^a-z0-9\-]', '-'
 
 # Project path
-Write-ColorOutput "`nWhere is your project located?" "White"
-Write-ColorOutput "Examples:" "Gray"
-Write-ColorOutput "  - C:\Users\YourName\projects\my-project" "Gray"
-Write-ColorOutput "  - ..\my-project (relative path)" "Gray"
-Write-ColorOutput "  - . (current directory)" "Gray"
-
-$projectPath = Read-Host "`nEnter project path"
-if ([string]::IsNullOrWhiteSpace($projectPath)) {
-    $projectPath = ".."
-}
-
-# Resolve relative paths
-if (-not [System.IO.Path]::IsPathRooted($projectPath)) {
-    $resolvedPath = Join-Path $ScriptDir $projectPath
-    $resolvedPath = (Resolve-Path $resolvedPath -ErrorAction SilentlyContinue).Path
-    if ($resolvedPath) {
-        Write-ColorOutput "Resolved to: $resolvedPath" "Gray"
-        $projectPath = $resolvedPath
-    }
-}
-
-# Verify path exists
-if (-not (Test-Path $projectPath)) {
-    Write-ColorOutput "[ERROR] Project path does not exist: $projectPath" "Red"
-    $create = Read-Host "Create this directory? (y/n)"
-    if ($create -eq 'y') {
-        New-Item -ItemType Directory -Path $projectPath -Force | Out-Null
-        Write-ColorOutput "[OK] Directory created" "Green"
-    } else {
-        exit 1
-    }
-}
-
+Write-Host ""
+Write-Host "Where is your project code located?" -ForegroundColor White
+Write-Host "Examples:" -ForegroundColor Gray
+Write-Host "  C:\Users\YourName\Projects\MyProject" -ForegroundColor Gray
+Write-Host "  D:\Development\MyApp" -ForegroundColor Gray
+Write-Host "  .. (parent directory)" -ForegroundColor Gray
 Write-Host ""
 
-# Get credentials
-Write-ColorOutput "=== Credentials Setup ===" "Magenta"
-Write-ColorOutput "Leave blank to skip (you can add these later)`n" "Gray"
+do {
+    $projectPath = Read-Host "Project path"
+    
+    if ($projectPath -match '^\.\.?') {
+        # Relative path
+        $resolvedPath = Resolve-Path $projectPath -ErrorAction SilentlyContinue
+        if ($resolvedPath) {
+            $projectPath = $resolvedPath.Path
+            Write-Host "[OK] Resolved to: $projectPath" -ForegroundColor Green
+            break
+        } else {
+            Write-Host "[ERROR] Could not resolve relative path" -ForegroundColor Red
+        }
+    } elseif (Test-Path $projectPath) {
+        Write-Host "[OK] Path exists" -ForegroundColor Green
+        break
+    } else {
+        Write-Host "[ERROR] Path does not exist: $projectPath" -ForegroundColor Red
+        Write-Host "Please enter a valid path or create the directory first." -ForegroundColor Red
+    }
+} while ($true)
 
 # Git configuration
-$gitUserName = Read-Host "Git user name"
-$gitUserEmail = Read-Host "Git user email"
+Write-Host ""
+Write-Host ">> GIT CONFIGURATION" -ForegroundColor Yellow
+Write-Host "===================" -ForegroundColor Yellow
 
-# GitHub token
-Write-ColorOutput "`nGitHub Personal Access Token (for gh CLI)" "White"
-Write-ColorOutput "Create one at: https://github.com/settings/tokens" "Gray"
-$githubToken = Read-Host "GitHub token" -AsSecureString
-$githubTokenPlain = if ($githubToken.Length -gt 0) {
-    [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
-        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($githubToken)
-    )
-} else { "" }
+$gitName = Read-Host "Your name (for git commits)"
+if (-not $gitName) {
+    $gitName = "Claude User"
+}
 
-# Anthropic API key
-Write-ColorOutput "`nAnthropic API Key (for Claude API access)" "White"
-Write-ColorOutput "Get one at: https://console.anthropic.com/settings/keys" "Gray"
-$anthropicKey = Read-Host "Anthropic API key" -AsSecureString
-$anthropicKeyPlain = if ($anthropicKey.Length -gt 0) {
-    [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
-        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($anthropicKey)
-    )
-} else { "" }
+$gitEmail = Read-Host "Your email (for git commits)"
+if (-not $gitEmail) {
+    $gitEmail = "claude@example.com"
+}
 
+# API Keys
+Write-Host ""
+Write-Host ">> API KEYS (Optional)" -ForegroundColor Yellow
+Write-Host "=====================" -ForegroundColor Yellow
+Write-Host "These are optional but recommended for full functionality." -ForegroundColor Gray
 Write-Host ""
 
+Write-Host "GitHub Personal Access Token:" -ForegroundColor White
+Write-Host "  • Get from: https://github.com/settings/tokens" -ForegroundColor Gray
+Write-Host "  • Required permissions: repo, workflow" -ForegroundColor Gray
+Write-Host "  • Leave blank to skip" -ForegroundColor Gray
+$githubToken = Read-Host "GitHub token"
+
+Write-Host ""
+Write-Host "Anthropic API Key:" -ForegroundColor White
+Write-Host "  • Get from: https://console.anthropic.com/" -ForegroundColor Gray
+Write-Host "  • Required for Claude Code to work" -ForegroundColor Gray
+Write-Host "  • Leave blank to configure later" -ForegroundColor Gray
+$anthropicKey = Read-Host "Anthropic API key"
+
+# Resource limits
+Write-Host ""
+Write-Host ">> RESOURCE SETTINGS" -ForegroundColor Yellow
+Write-Host "====================" -ForegroundColor Yellow
+Write-Host "Universal container includes Python, Node.js, Java, .NET, Go, and more!" -ForegroundColor Green
+Write-Host ""
+
+$cpuLimit = Read-Host "CPU cores to allocate (default: 6)"
+if (-not $cpuLimit) {
+    $cpuLimit = "6"
+}
+
+$memoryLimit = Read-Host "Memory limit in GB (default: 12)"
+if (-not $memoryLimit) {
+    $memoryLimit = "12"
+}
+$memoryLimit = $memoryLimit + "G"
+
 # Create .env file
-Write-ColorOutput "=== Creating Configuration ===" "Magenta"
+Write-Host ""
+Write-Host ">> Creating configuration file..." -ForegroundColor Yellow
 
 $envContent = @"
-# Claude Development Environment Configuration
-# Generated by init.ps1 on $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+# Claude Code Docker Environment Configuration
+# Generated by init script on $(Get-Date)
 
-# Project Configuration
+# ===== PROJECT SETTINGS =====
 PROJECT_NAME=$projectName
 PROJECT_PATH=$projectPath
 
-# Git Configuration
-GIT_USER_NAME=$gitUserName
-GIT_USER_EMAIL=$gitUserEmail
+# ===== GIT CONFIGURATION =====
+GIT_USER_NAME=$gitName
+GIT_USER_EMAIL=$gitEmail
 
-# API Keys and Tokens
-GITHUB_TOKEN=$githubTokenPlain
-ANTHROPIC_API_KEY=$anthropicKeyPlain
+# ===== API KEYS =====
+GITHUB_TOKEN=$githubToken
+ANTHROPIC_API_KEY=$anthropicKey
 
-# Development Environment
-NODE_ENV=development
-PYTHON_ENV=development
-DEBUG=true
+# ===== RESOURCE LIMITS =====
+CPU_LIMIT=$cpuLimit
+MEMORY_LIMIT=$memoryLimit
 
-# Resource Limits
-CPU_LIMIT=4
-MEMORY_LIMIT=8G
-CPU_RESERVATION=2
-MEMORY_RESERVATION=4G
+# ===== ADVANCED SETTINGS =====
+EXPOSED_PORTS=3000,5000,8000,8080,9000
+DOCKER_BUILDKIT=1
 "@
 
-$envPath = Join-Path $ScriptDir ".env"
-# Save without BOM
-[System.IO.File]::WriteAllText($envPath, $envContent, [System.Text.UTF8Encoding]::new($false))
+$envContent | Out-File -FilePath ".env" -Encoding UTF8
+Write-Host "[OK] Configuration saved to .env" -ForegroundColor Green
 
-Write-ColorOutput "[OK] Configuration saved to .env" "Green"
-
-# Ask about building
+# Summary
 Write-Host ""
-Write-ColorOutput "=== Docker Setup ===" "Magenta"
-Write-ColorOutput "Ready to build the Docker image." "White"
-Write-ColorOutput "This will take 2-3 minutes on first run.`n" "Gray"
-
-$proceed = Read-Host "Build and start now? (y/n)"
-if ($proceed -ne 'y') {
-    Write-ColorOutput "`nSetup complete! To start later, run:" "Green"
-    Write-ColorOutput "  cd $ScriptDir" "Cyan"
-    Write-ColorOutput "  .\scripts\start-claude.ps1" "Cyan"
-    exit 0
+Write-Host ">> SETUP SUMMARY" -ForegroundColor Yellow
+Write-Host "================" -ForegroundColor Yellow
+Write-Host "Project: $projectName" -ForegroundColor White
+Write-Host "Path: $projectPath" -ForegroundColor White
+Write-Host "Git User: $gitName <$gitEmail>" -ForegroundColor White
+if ($githubToken) {
+    Write-Host "GitHub: Configured" -ForegroundColor Green
+} else {
+    Write-Host "GitHub: Not configured" -ForegroundColor Gray
 }
-
-# Build and start
-Write-Host ""
-Write-ColorOutput "Building Docker image..." "Yellow"
-Set-Location $ScriptDir
-
-# Build the image directly with Docker to avoid compose path issues
-# Use project-specific image name to avoid conflicts
-docker build -f Dockerfile -t "${projectName}-claude:latest" .
-
-if ($LASTEXITCODE -ne 0) {
-    Write-ColorOutput "[ERROR] Build failed" "Red"
-    exit 1
+if ($anthropicKey) {
+    Write-Host "Claude API: Configured" -ForegroundColor Green
+} else {
+    Write-Host "Claude API: Not configured" -ForegroundColor Red
 }
-
-Write-ColorOutput "[OK] Docker image built successfully!" "Green"
-
-# Start the container
-Write-Host ""
-Write-ColorOutput "Starting Claude development environment..." "Yellow"
-
-# Create a new PowerShell process to run the container
-$startScript = Join-Path $ScriptDir "scripts\start-claude.ps1"
-$startCommand = "powershell -ExecutionPolicy Bypass -NoExit -File `"$startScript`""
-
-Write-ColorOutput "`n=== Setup Complete! ===" "Green"
-Write-ColorOutput "Claude Code is starting in a new window..." "White"
-Write-ColorOutput "`nIn the new window, you can run:" "Cyan"
-Write-ColorOutput "  claude --help     # See Claude Code options" "Gray"
-Write-ColorOutput "  claude           # Start Claude Code" "Gray"
-Write-ColorOutput "`nYour project is mounted at: /workspace" "White"
-
-# Start in new window
-Start-Process powershell -ArgumentList "-ExecutionPolicy", "Bypass", "-NoExit", "-File", "`"$startScript`""
+Write-Host "Resources: $cpuLimit CPU cores, $memoryLimit RAM" -ForegroundColor White
 
 Write-Host ""
-Write-ColorOutput "Happy coding! 🚀" "Green"
+Write-Host ">> NEXT STEPS" -ForegroundColor Yellow
+Write-Host "=============" -ForegroundColor Yellow
+Write-Host "1. Review your .env file if needed" -ForegroundColor White
+Write-Host "2. Run the start script:" -ForegroundColor White
+Write-Host "   .\scripts\start-claude.ps1" -ForegroundColor Cyan
+Write-Host ""
+
+# Ask if they want to start now
+$startNow = Read-Host "Start Claude Code now? (y/N)"
+if ($startNow -eq "y" -or $startNow -eq "Y" -or $startNow -eq "yes") {
+    Write-Host ""
+    Write-Host ">> Starting Claude Code..." -ForegroundColor Green
+    .\scripts\start-claude.ps1
+} else {
+    Write-Host ""
+    Write-Host "[OK] Setup complete! Run .\scripts\start-claude.ps1 when ready." -ForegroundColor Green
+    Write-Host ""
+}
